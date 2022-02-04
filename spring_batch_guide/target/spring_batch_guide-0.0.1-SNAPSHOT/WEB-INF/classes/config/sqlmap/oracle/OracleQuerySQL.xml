@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="oracleQuerySQL">
+	<insert id="insertFifaRanking1" parameterType="com.batchguide.dto.FifaRankingDTO">
+		INSERT /* id:insertFifaRanking1| Fifa 순위 저장 | OracleQuerySQL.xml */ 
+		  INTO FIFA_RANKING
+		  	   (RNK
+		  	  , RNK_DATE
+		  	  , COUNTRY_FULL
+		  	  , COUNTRY_ABRV
+		  	  , TOTAL_POINTS
+		  	  , PREVIOUS_POINTS
+		  	  , RANK_CHANGE
+		  	  , CUR_YEAR_AVG
+		  	  , CUR_YEAR_AVG_WEIGHTED
+		  	  , LAST_YEAR_AVG
+		  	  , LAST_YEAR_AVG_WEIGHTED
+		  	  , TWO_YEAR_AGO_AVG
+		  	  , TWO_YEAR_AGO_WEIGHTED
+		  	  , THREE_YEAR_AGO_AVG
+		  	  , THREE_YEAR_AGO_WEIGHTED
+		  	  , CONFEDERATION)
+		VALUES (#{rank}
+		      , #{rank_date}
+		      , #{country_full}
+		      , #{country_abrv}
+		      , #{total_points}
+		      , #{previous_points}
+		      , #{rank_change}
+		      , #{cur_year_avg}
+		      , #{cur_year_avg_weighted}
+		      , #{last_year_avg}
+		      , #{last_year_avg_weighted} 
+		      , #{two_year_ago_avg}
+		      , #{two_year_ago_weighted}
+		      , #{three_year_ago_avg}
+		      , #{three_year_ago_weighted}
+		      , #{confederation})
+	</insert>
+	
+	<insert id="insertBlackFridayForOracle" parameterType="com.batchguide.vo.BlackFridayVO">
+		INSERT /* id:insertBlackFridayForOracle| BlackFriday 데이터 저장 | OracleQuerySQL.xml */ 
+		  INTO BLACK_FRIDAY T
+		  	   (USER_ID
+		  	  , PRODUCT_ID
+		  	  , GENDER
+		  	  , AGE
+		  	  , OCCUPATION
+		  	  , CITY_CATEGORY
+		  	  , STAY_IN_CURRENT_CITY_YEARS
+		  	  , MARITAL_STATUS
+		  	  , PRODUCT_CATEGORY_1
+		  	  , PRODUCT_CATEGORY_2
+		  	  , PRODUCT_CATEGORY_3
+		  	  , PURCHASE)
+		VALUES (#{userId}
+		      , #{productId}
+		      , #{gender}
+		      , #{age}
+		      , #{occupation}
+		      , #{cityCategory}
+		      , #{stayInCurrentCityYears}
+		      , #{maritalStatus}
+		      , #{productCategory1}
+		      , #{productCategory2}
+		      , #{productCategory3} 
+		      , #{purchase})
+	</insert>
+	
+	<select id="selectBlackFridaysForOracle" resultType="com.batchguide.vo.BlackFridayVO">
+	<![CDATA[
+		SELECT /* id:selectBlackFridaysForOracle| BlackFriday 데이터 조회 | OracleQuerySQL.xml */
+		       USER_ID
+		  	 , PRODUCT_ID
+		  	 , GENDER
+		  	 , AGE
+		  	 , OCCUPATION
+		  	 , CITY_CATEGORY
+		  	 , STAY_IN_CURRENT_CITY_YEARS
+		  	 , MARITAL_STATUS
+		  	 , PRODUCT_CATEGORY_1
+		  	 , PRODUCT_CATEGORY_2
+		  	 , PRODUCT_CATEGORY_3
+		  	 , PURCHASE
+		  FROM BLACK_FRIDAY 
+		 WHERE MOD(ORA_HASH(USER_ID),#{parallelTotal,jdbcType=INTEGER})=#{parallelIndex,jdbcType=INTEGER}
+	]]>
+	</select>	
+	
+	<insert id="insertSelectBlackFridayForAggregation">
+		INSERT /* insertSelectBlackFridayForAggregation| BlackFriday 집계데이터저장 | OracleQuerySQL.xml */ 
+		  INTO BLACK_FRIDAY_AGGRGT 
+		  	   (USER_ID
+		  	  , PRODUCT_ID
+		  	  , GENDER
+		  	  , AGE
+		  	  , OCCUPATION
+		  	  , CITY_CATEGORY
+		  	  , STAY_IN_CURRENT_CITY_YEARS
+		  	  , MARITAL_STATUS
+		  	  , PRODUCT_CATEGORY_1
+		  	  , PRODUCT_CATEGORY_2
+		  	  , PRODUCT_CATEGORY_3
+		  	  , PURCHASE)
+		SELECT USER_ID
+		     , PRODUCT_ID
+		     , GENDER
+		     , AGE
+		     , OCCUPATION
+		     , CITY_CATEGORY
+		     , MAX(STAY_IN_CURRENT_CITY_YEARS)		AS STAY_IN_CURRENT_CITY_YEARS
+		     , MAX(MARITAL_STATUS)					AS MARITAL_STATUS
+		     , MAX(PRODUCT_CATEGORY_1) 				AS PRODUCT_CATEGORY_1
+		     , MAX(PRODUCT_CATEGORY_2) 				AS PRODUCT_CATEGORY_2
+		     , MAX(PRODUCT_CATEGORY_3) 				AS PRODUCT_CATEGORY_3
+		     , SUM(PURCHASE)						AS PURCHASE
+		  FROM BLACK_FRIDAY  
+		 GROUP BY USER_ID
+		        , PRODUCT_ID
+		        , GENDER
+		        , AGE
+		        , OCCUPATION
+		        , CITY_CATEGORY
+		        , MARITAL_STATUS
+	</insert>	
+</mapper>
